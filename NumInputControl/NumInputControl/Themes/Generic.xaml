@@ -1,0 +1,64 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:NumInputControl">
+
+    <local:NumInputValueConverter x:Key="defaultConverter" />
+
+    <Style TargetType="{x:Type local:NumInput}" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Style.Resources>
+            <Style x:Key="tmplLabel" TargetType="Label">
+                <Setter Property="Padding" Value="{Binding Padding}"/>
+                <Setter Property="BorderBrush" Value="{Binding BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{Binding BorderThickness}"/>
+                <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment}"/>
+                <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Label">
+                            <Border BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="LightGray" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style.Resources>
+        <Setter Property="Text">
+            <Setter.Value>
+                <MultiBinding Converter="{StaticResource defaultConverter}">
+                    <Binding Path="Value"/>
+                    <Binding Path="Precision"/>
+                </MultiBinding>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsFocused" Value="false">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type local:NumInput}">
+                            <Label Style="{DynamicResource tmplLabel}">
+                                <Label.Content>
+                                    <MultiBinding Converter="{StaticResource defaultConverter}">
+                                        <Binding Path="Value"/>
+                                        <Binding Path="Precision"/>
+                                    </MultiBinding>
+                                </Label.Content>
+                            </Label>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>
