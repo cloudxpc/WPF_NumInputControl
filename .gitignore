@@ -3,3 +3,8 @@
 ################################################################################
 
 /.vs
+/NumInputControl/.vs
+/NumInputControl/NumInputControl/bin
+/NumInputControl/NumInputControl/obj
+/NumInputControl/TestApp/bin
+/NumInputControl/TestApp/obj

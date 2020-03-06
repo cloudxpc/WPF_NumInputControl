@@ -24,6 +24,7 @@
         <control:NumInput MaxValue="500" MinValue="-500"/>
         <control:NumInput MaxValue="50" MinValue="-50"/>
         <control:NumInput MaxValue="5" MinValue="-5"/>
-        <control:NumInput MaxValue="0" MinValue="-500"/>
+        <control:NumInput MaxValue="0" MinValue="-500" Value="{Binding Content, ElementName=lbl, Mode=TwoWay}"/>
+        <Label x:Name="lbl"/>
     </WrapPanel>
 </Window>

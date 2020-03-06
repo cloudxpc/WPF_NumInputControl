@@ -27,11 +27,17 @@ namespace NumInputControl
 {
     public class NumInput : TextBox
     {
-        public static DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(double), typeof(NumInput), new FrameworkPropertyMetadata(0.0));
+        public static DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(double), typeof(NumInput), new FrameworkPropertyMetadata(0.0, ValuePropertyChangedCallback));
         public static DependencyProperty StepProperty = DependencyProperty.Register(nameof(Step), typeof(double), typeof(NumInput), new PropertyMetadata(1.0));
         public static DependencyProperty PrecisionProperty = DependencyProperty.Register(nameof(Precision), typeof(int), typeof(NumInput), new PropertyMetadata(2));
         public static DependencyProperty MaxValueProperty = DependencyProperty.Register(nameof(MaxValue), typeof(double), typeof(NumInput), new PropertyMetadata(99999.99));
         public static DependencyProperty MinValueProperty = DependencyProperty.Register(nameof(MinValue), typeof(double), typeof(NumInput), new PropertyMetadata(-99999.99));
+
+        public static void ValuePropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            NumInput numInput = d as NumInput;
+            numInput.Value = numInput.GetValidValue((double)e.NewValue);
+        }
 
         static NumInput()
         {
