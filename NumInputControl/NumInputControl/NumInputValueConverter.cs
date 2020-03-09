@@ -8,6 +8,7 @@ using System.Windows.Data;
 
 namespace NumInputControl
 {
+    [Obsolete("Use DragInput instead")]
     public class NumInputValueConverter : IMultiValueConverter
     {
         private int precision;

@@ -14,17 +14,83 @@
             <Setter Property="Margin" Value="10"/>
             <Setter Property="FontSize" Value="14"/>
         </Style>
+        
+        <Style TargetType="TextBox">
+            <Style.Resources>
+                <Style x:Key="tmplLabel" TargetType="Label">
+                    <Setter Property="Padding" Value="{Binding Padding, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    <Setter Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    <Setter Property="BorderThickness" Value="{Binding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Label">
+                                <Border BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                            <GradientStop Color="White" Offset="0"/>
+                                            <GradientStop Color="LightGray" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Style.Resources>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="false">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TextBox">
+                                <Label Style="{DynamicResource tmplLabel}" Content="{TemplateBinding Text}"/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
-    <WrapPanel>
-        <control:NumInput MaxValue="1" MinValue="0" Step="0.01"/>
-        <control:NumInput Step="0.1"/>
-        <control:NumInput MaxValue="100" MinValue="0" Step="5"/>
-        <control:NumInput Step="100"/>
-        <control:NumInput Precision="6"/>
-        <control:NumInput MaxValue="500" MinValue="-500"/>
-        <control:NumInput MaxValue="50" MinValue="-50"/>
-        <control:NumInput MaxValue="5" MinValue="-5"/>
-        <control:NumInput MaxValue="0" MinValue="-500" Value="{Binding Content, ElementName=lbl, Mode=TwoWay}"/>
-        <Label x:Name="lbl"/>
-    </WrapPanel>
+    <StackPanel>
+        <WrapPanel>
+            <control:NumInput MaxValue="1" MinValue="0" Step="0.01"/>
+            <control:NumInput Step="0.1"/>
+            <control:NumInput MaxValue="100" MinValue="0" Step="5"/>
+            <control:NumInput Step="100"/>
+            <control:NumInput Precision="6"/>
+            <control:NumInput MaxValue="500" MinValue="-500"/>
+            <control:NumInput MaxValue="50" MinValue="-50"/>
+            <control:NumInput MaxValue="5" MinValue="-5"/>
+            <control:NumInput MaxValue="0" MinValue="-500" Value="{Binding Content, ElementName=lbl, Mode=TwoWay}"/>
+            <Label x:Name="lbl" />
+        </WrapPanel>
+        <WrapPanel>
+            <control:DragInput MaxValue="100" MinValue="0" Step="5" Precision="0" Value="-3">
+                <Label Width="100"  Content="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
+                <!--<TextBox/>-->
+            </control:DragInput>
+            <control:DragInput Precision="3">
+                <TextBox Width="100" Text="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
+            </control:DragInput>
+            <control:DragInput>
+                <Label Width="100"  Content="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
+                <!--<TextBox/>-->
+            </control:DragInput>
+            <control:DragInput Value="1">
+                <TextBox Width="100" Text="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
+            </control:DragInput>
+        </WrapPanel>
+    </StackPanel>
 </Window>

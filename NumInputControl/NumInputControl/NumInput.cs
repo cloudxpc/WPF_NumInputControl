@@ -25,6 +25,7 @@ using System.Windows.Shapes;
 
 namespace NumInputControl
 {
+    [Obsolete("Use DragInput instead")]
     public class NumInput : TextBox
     {
         public static DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(double), typeof(NumInput), new FrameworkPropertyMetadata(0.0, ValuePropertyChangedCallback));
