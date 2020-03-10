@@ -81,10 +81,10 @@
                 <Label Width="100"  Content="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
                 <!--<TextBox/>-->
             </control:DragInput>
-            <control:DragInput Precision="3">
+            <control:DragInput Precision="3" Step="0.05">
                 <TextBox Width="100" Text="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
             </control:DragInput>
-            <control:DragInput>
+            <control:DragInput Color="Aqua">
                 <Label Width="100"  Content="{Binding Value, RelativeSource={RelativeSource AncestorType=control:DragInput}}"/>
                 <!--<TextBox/>-->
             </control:DragInput>

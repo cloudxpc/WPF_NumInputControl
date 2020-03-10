@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace NumInputControl
 {
-    public class DragInput : ContentControl
+    public class DragInput : ContentControl, INotifyPropertyChanged
     {
         public static DependencyProperty ValueProperty =
             DependencyProperty.Register(nameof(Value), typeof(object), typeof(DragInput),
@@ -25,6 +27,13 @@ namespace NumInputControl
                 new PropertyMetadata(-10000.0, MinValuePropertyChangedCallback, MinValueCoerceValueCallback));
         public static DependencyProperty StepProperty = DependencyProperty.Register(nameof(Step), typeof(double), typeof(DragInput), new PropertyMetadata(1.0));
         public static DependencyProperty PrecisionProperty = DependencyProperty.Register(nameof(Precision), typeof(int), typeof(DragInput), new PropertyMetadata(2));
+        public static DependencyProperty MaxLinesProperty = DependencyProperty.Register(nameof(MaxLines), typeof(int), typeof(DragInput), new PropertyMetadata(5));
+        public static DependencyProperty PrimaryThicknessProperty = DependencyProperty.Register(nameof(PrimaryThickness), typeof(double), typeof(DragInput), new PropertyMetadata(5.0));
+        public static DependencyProperty SecondThicknessProperty = DependencyProperty.Register(nameof(SecondThickness), typeof(double), typeof(DragInput), new PropertyMetadata(3.0));
+        public static DependencyProperty ControlHeightProperty = DependencyProperty.Register(nameof(ControlHeight), typeof(double), typeof(DragInput), new PropertyMetadata(300.0));
+        public static DependencyProperty ControlWidthProperty = DependencyProperty.Register(nameof(ControlWidth), typeof(double), typeof(DragInput), new PropertyMetadata(50.0));
+        public static DependencyProperty ColorProperty = DependencyProperty.Register(nameof(Color), typeof(Brush), typeof(DragInput), new PropertyMetadata(new SolidColorBrush(Colors.Red)));
+        public static DependencyProperty MouseLineColorProperty = DependencyProperty.Register(nameof(MouseLineColor), typeof(Brush), typeof(DragInput), new PropertyMetadata(new SolidColorBrush(Colors.Gray)));
 
         public static void ValuePropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -67,21 +76,15 @@ namespace NumInputControl
             return min > dragInput.MaxValue ? dragInput.MaxValue : min;
         }
 
-        private const int MouseMoveMaxY = 300;
-        private const int IX = 50;
-        private const int IPrimaryThickness = 5;
-        private const int ISecondThickness = 3;
-        private const int IMaxLines = 5;
-
         private Point startMousePos;
         private double originalValue;
         private double interval;
         private double relativeStartMouseY;
+        private double mouseY;
 
         private Window IWin;
+        private Label MouseLabel;
         private Line MouseLine;
-        private Brush LineBrush = new SolidColorBrush(Colors.Red);
-        private Brush MouseLineBrush = new SolidColorBrush(Colors.Gray);
         private FontFamily ILabelFontFamily = new FontFamily("Arial");
         private FontStyle ILabelFontStyle = FontStyles.Normal;
         private FontWeight ILabelFontWeight = FontWeights.Bold;
@@ -91,6 +94,8 @@ namespace NumInputControl
         private double ILabelHeight;
 
         private FrameworkElement _element;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public object Value
         {
@@ -129,6 +134,66 @@ namespace NumInputControl
         {
             get => (double)this.GetValue(MinValueProperty);
             set => this.SetValue(MinValueProperty, value);
+        }
+
+        public int MaxLines
+        {
+            get => (int)this.GetValue(MaxLinesProperty);
+            set => this.SetValue(MaxLinesProperty, value);
+        }
+
+        public double PrimaryThickness
+        {
+            get => (double)this.GetValue(PrimaryThicknessProperty);
+            set => this.SetValue(PrimaryThicknessProperty, value);
+        }
+
+        public double SecondThickness
+        {
+            get => (double)this.GetValue(SecondThicknessProperty);
+            set => this.SetValue(SecondThicknessProperty, value);
+        }
+
+        public double ControlHeight
+        {
+            get => (double)this.GetValue(ControlHeightProperty);
+            set => this.SetValue(ControlHeightProperty, value);
+        }
+
+        public double ControlWidth
+        {
+            get => (double)this.GetValue(ControlWidthProperty);
+            set => this.SetValue(ControlWidthProperty, value);
+        }
+
+        public Brush Color
+        {
+            get => (Brush)this.GetValue(ColorProperty);
+            set => this.SetValue(ColorProperty, value);
+        }
+
+        public Brush MouseLineColor
+        {
+            get => (Brush)this.GetValue(MouseLineColorProperty);
+            set => this.SetValue(MouseLineColorProperty, value);
+        }
+
+        public double MouseY
+        {
+            get => mouseY;
+            set
+            {
+                if (mouseY != value)
+                {
+                    mouseY = value;
+                    OnPropertyChanged("MouseY");
+                }
+            }
+        }
+
+        public void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public override void OnApplyTemplate()
@@ -171,7 +236,7 @@ namespace NumInputControl
                 FontStretch = ILabelFontStretch,
                 FontSize = LabelFontSize,
                 Padding = new Thickness(0),
-                Foreground = LineBrush,
+                Foreground = Color,
                 //Background = new SolidColorBrush(Colors.Blue),
                 VerticalContentAlignment = VerticalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Right,
@@ -189,8 +254,8 @@ namespace NumInputControl
         private double CalculateValuePos()
         {
             double pct = 1 - (NumValue - MinValue) / interval;
-            double ypos = MouseMoveMaxY * pct;
-            return (ILabelHeight / 2 + ypos) - ISecondThickness / 2;
+            double ypos = ControlHeight * pct;
+            return (ILabelHeight / 2 + ypos) - SecondThickness / 2;
         }
 
         private void InitIWin()
@@ -200,11 +265,11 @@ namespace NumInputControl
 
             double marginLR = ILabelWidth + 5;
             double marginTB = ILabelHeight / 2;
-            double secondWidth = IX / 2.0;
-            double secondMargin = marginLR + (IX - secondWidth) / 2;
-            double middleLineX = marginLR + IX / 2 - ISecondThickness / 2;
-            double wndWidth = ILabelWidth + IX + 40;
-            double wndHeight = marginTB * 2 + MouseMoveMaxY;
+            double secondWidth = ControlWidth / 2.0;
+            double secondMargin = marginLR + (ControlWidth - secondWidth) / 2;
+            double middleLineX = marginLR + ControlWidth / 2 - SecondThickness / 2;
+            double wndWidth = ILabelWidth + ControlWidth + 40;
+            double wndHeight = marginTB * 2 + ControlHeight;
             Canvas canvas = new Canvas();
 
             //Max
@@ -212,19 +277,19 @@ namespace NumInputControl
             canvas.Children.Add(new Line()
             {
                 X1 = marginLR,
-                X2 = marginLR + IX,
+                X2 = marginLR + ControlWidth,
                 Y1 = marginTB,
                 Y2 = marginTB,
-                Stroke = LineBrush,
-                StrokeThickness = IPrimaryThickness
+                Stroke = Color,
+                StrokeThickness = PrimaryThickness
             });
 
-            double lineValue = Math.Abs(MaxValue - MinValue) / IMaxLines;
-            int lineY = MouseMoveMaxY / IMaxLines;
-            for (int i = 1; i < IMaxLines; i++)
+            double lineValue = Math.Abs(MaxValue - MinValue) / MaxLines;
+            double lineY = ControlHeight / MaxLines;
+            for (int i = 1; i < MaxLines; i++)
             {
                 double v = MaxValue - lineValue * i;
-                double y = marginTB + lineY * i - ISecondThickness / 2;
+                double y = marginTB + lineY * i - SecondThickness / 2;
 
                 canvas.Children.Add(CreateLabel(v, 0, y - ILabelHeight / 2));
                 canvas.Children.Add(new Line()
@@ -233,21 +298,21 @@ namespace NumInputControl
                     X2 = secondMargin + secondWidth,
                     Y1 = y,
                     Y2 = y,
-                    Stroke = LineBrush,
-                    StrokeThickness = ISecondThickness
+                    Stroke = Color,
+                    StrokeThickness = SecondThickness
                 });
             }
 
             //Min
-            canvas.Children.Add(CreateLabel(MinValue, 0, MouseMoveMaxY));
+            canvas.Children.Add(CreateLabel(MinValue, 0, ControlHeight));
             canvas.Children.Add(new Line()
             {
                 X1 = marginLR,
-                X2 = marginLR + IX,
-                Y1 = marginTB + MouseMoveMaxY,
-                Y2 = marginTB + MouseMoveMaxY,
-                Stroke = LineBrush,
-                StrokeThickness = IPrimaryThickness
+                X2 = marginLR + ControlWidth,
+                Y1 = marginTB + ControlHeight,
+                Y2 = marginTB + ControlHeight,
+                Stroke = Color,
+                StrokeThickness = PrimaryThickness
             });
 
             //Middle
@@ -256,19 +321,27 @@ namespace NumInputControl
                 X1 = middleLineX,
                 X2 = middleLineX,
                 Y1 = marginTB,
-                Y2 = marginTB + MouseMoveMaxY,
-                Stroke = LineBrush,
-                StrokeThickness = ISecondThickness
+                Y2 = marginTB + ControlHeight,
+                Stroke = Color,
+                StrokeThickness = SecondThickness
             });
 
             //Mouse Line
+            MouseLabel = CreateLabel(0, 0, 0);
+            MouseLabel.Foreground = MouseLineColor;
+            MouseLabel.Margin = new Thickness(0, -ILabelHeight / 2, 0, 0);
+            BindingOperations.SetBinding(MouseLabel, Label.ContentProperty, new Binding("Value") { Source = this });
+            BindingOperations.SetBinding(MouseLabel, Canvas.TopProperty, new Binding("MouseY") { Source = this });
+            canvas.Children.Add(MouseLabel);
             MouseLine = new Line
             {
-                Stroke = MouseLineBrush,
-                StrokeThickness = ISecondThickness,
+                Stroke = MouseLineColor,
+                StrokeThickness = SecondThickness,
                 X1 = secondMargin,
                 X2 = wndWidth
             };
+            BindingOperations.SetBinding(MouseLine, Line.Y1Property, new Binding("MouseY") { Source = this });
+            BindingOperations.SetBinding(MouseLine, Line.Y2Property, new Binding("MouseY") { Source = this });
             canvas.Children.Add(MouseLine);
 
             //Window
@@ -286,9 +359,8 @@ namespace NumInputControl
 
             double ypos = CalculateValuePos();
             IWin.Top = startMousePos.Y - ypos;
-            MouseLine.Y1 = ypos;
-            MouseLine.Y2 = ypos;
             relativeStartMouseY = ypos;
+            MouseY = ypos;
         }
 
         private void ReleaseIWin()
@@ -297,7 +369,10 @@ namespace NumInputControl
             {
                 IWin.Close();
                 IWin = null;
+                BindingOperations.ClearAllBindings(MouseLine);
                 MouseLine = null;
+                BindingOperations.ClearAllBindings(MouseLabel);
+                MouseLabel = null;
             }
         }
 
@@ -308,7 +383,7 @@ namespace NumInputControl
 
             e.Handled = true;
             _element.Cursor = Cursors.ScrollNS;
-            startMousePos = _element.PointToScreen(e.GetPosition(this));
+            startMousePos = _element.PointToScreen(e.GetPosition(_element));
             originalValue = NumValue;
             interval = Math.Abs(MaxValue - MinValue);
 
@@ -333,12 +408,12 @@ namespace NumInputControl
         {
             if (_element != null && _element.IsMouseCaptured && e.RightButton == MouseButtonState.Pressed)
             {
-                Point currentMousePos = _element.PointToScreen(e.GetPosition(this));
+                Point currentMousePos = _element.PointToScreen(e.GetPosition(_element));
 
                 //Console.WriteLine(string.Format("Previous: {0} Current:{1}", previousMousePos, currentMousePos));
 
                 double moveY = startMousePos.Y - currentMousePos.Y;
-                double ratio = moveY / MouseMoveMaxY;
+                double ratio = moveY / ControlHeight;
                 double delta = ratio * interval;
                 double val = Math.Round(delta / Step) * Step;
 
@@ -348,11 +423,9 @@ namespace NumInputControl
 
                 if (IWin != null)
                 {
-                    IWin.Left = currentMousePos.X - (ILabelWidth + IX + 20);
+                    IWin.Left = currentMousePos.X - (ILabelWidth + ControlWidth + 20);
 
-                    double ypos = CalculateValuePos();
-                    MouseLine.Y1 = ypos;
-                    MouseLine.Y2 = ypos;
+                    MouseY = CalculateValuePos();
 
                     if (currentMousePos.Y > (IWin.Top + IWin.Height))
                     {
