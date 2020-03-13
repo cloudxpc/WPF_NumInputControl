@@ -18,7 +18,7 @@ namespace NumInputControl
     {
         public static DependencyProperty ValueProperty =
             DependencyProperty.Register(nameof(Value), typeof(object), typeof(DragInput),
-                new PropertyMetadata(0.0, ValuePropertyChangedCallback, ValueCoerceValueCallback));
+                new PropertyMetadata(0.0, ValuePropertyChangedCallback));
         public static DependencyProperty MaxValueProperty =
             DependencyProperty.Register(nameof(MaxValue), typeof(double), typeof(DragInput),
                 new PropertyMetadata(10000.0, MaxValuePropertyChangedCallback, MaxValueCoerceValueCallback));
@@ -37,14 +37,27 @@ namespace NumInputControl
 
         public static void ValuePropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
+            DragInput dragInput = d as DragInput;
+            double val;
+
+            string strVal = e.NewValue == null ? "0" : e.NewValue.ToString();
+
+            if (double.TryParse(strVal, out val))
+                val = val > dragInput.MaxValue ? dragInput.MaxValue : val < dragInput.MinValue ? dragInput.MinValue : val;
+
+            string formattedVal = string.Format("{0:F" + dragInput.Precision + "}", val);
+
+            if (strVal != formattedVal)
+                dragInput.Value = formattedVal;
         }
 
+        //Not using this way because coerced value does not update the source of binding
         public static object ValueCoerceValueCallback(DependencyObject d, object baseValue)
         {
             DragInput dragInput = d as DragInput;
             double val;
 
-            if (double.TryParse(baseValue.ToString(), out val))
+            if (double.TryParse(baseValue == null ? "0" : baseValue.ToString(), out val))
             {
                 val = val > dragInput.MaxValue ? dragInput.MaxValue : (val < dragInput.MinValue ? dragInput.MinValue : val);
             }
